@@ -13,7 +13,7 @@
         <label>IPAddressInfo</label>
         <live_feed_enabled>false</live_feed_enabled>
         <name>x_58872_needit_ipaddressinfo</name>
-        <number_ref/>
+        <number_ref display_value="IPA">04a30087470521104fcf016a436d4312</number_ref>
         <provider_class/>
         <read_access>true</read_access>
         <scriptable_table>false</scriptable_table>

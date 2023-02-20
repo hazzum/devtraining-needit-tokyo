@@ -37,9 +37,9 @@
         var response = r.execute();
         var responseBody = response.getBody();
         var httpStatus = response.getStatusCode();
-		
+
 		var responseObj = JSON.parse(responseBody);
-		current.city = reponseObj.city;
+		current.city = responseObj.city;
 		gs.info("Current city: " + current.city);
 		current.update();
     } catch (ex) {
