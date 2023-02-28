@@ -34,7 +34,7 @@
     // user_name path parameter is the Requested for.  The encoded query is from the
     // Query Parameter Associations.  Group by category.
     let needitRecs = 0;
-    let niUserRecs = [];
+    const niUserRecs = [];
     let needitRecsCount = 0;
     new global.GlideQuery
         .parse('x_58872_needit_needit', ni_query)
@@ -44,7 +44,7 @@
 		.select()
         .forEach((userNI) => {
             needitRecs = userNI.count;
-            let reqType = userNI.group.u_request_type;
+            const reqType = userNI.group.u_request_type;
             niUserRecs.push({
                 "requestType": reqType,
                 "count": needitRecs
@@ -52,7 +52,7 @@
             needitRecsCount = parseInt(needitRecsCount) + parseInt(needitRecs);
         });
     //Create a body object.  Add property value pairs to the body.
-    let body = {};
+    const body = {};
     body.totalUserNIRecs = needitRecsCount;
     body.catCounts = niUserRecs;
     body.user = {
