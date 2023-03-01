@@ -3,60 +3,54 @@
         <active>true</active>
         <consumes>application/json</consumes>
         <consumes_customized>false</consumes_customized>
-        <default_operation_uri>/api/x_58872_needit/needit_api/nigetinfo/{user_name}</default_operation_uri>
+        <default_operation_uri/>
         <enforce_acl>cf9d01d3e73003009d6247e603f6a990</enforce_acl>
         <http_method>GET</http_method>
         <name>ni_getinfo</name>
         <operation_script><![CDATA[(function process(/*RESTAPIRequest*/ request, /*RESTAPIResponse*/ response) {
+  // implement resource here
 
-// implement resource here
+  // Get value from the user_name path parameter passed in the URL
+  var requestUser = request.pathParams.user_name;
+  // Get value of the ni_query query parameter passed in the URL
+  var requestNIQuery = request.queryParams.ni_query;
 
+  // Query the sys_user table to get the user record for the user passed in
+  // the user_id path parameter.
+  var requestUserName = new GlideRecord('sys_user');
+  requestUserName.get('user_name', requestUser);
 
-// Get value from the user_name path parameter passed in the URL
-var requestUser = request.pathParams.user_name;
-// Get value of the ni_query query parameter passed in the URL
-var requestNIQuery = request.queryParams.ni_query;
+  // Get the count of active NeedIt table records where the user from the
+  // user_name path parameter is the Requested for.  The encoded query is from the
+  // Query Parameter Associations.  Group by category.
+  var userNICount = new GlideAggregate('x_58872_needit_needit');
+  userNICount.addAggregate('COUNT');
+  userNICount.addQuery('u_requested_for', requestUserName.sys_id);
+  userNICount.addEncodedQuery(requestNIQuery);
+  userNICount.groupBy('u_request_type');
+  userNICount.query();
 
-// Query the sys_user table to get the user record for the user passed in
-// the user_id path parameter.  
-var requestUserName = new GlideRecord('sys_user');
-requestUserName.get('user_name',requestUser);
+  var needitRecs = 0;
+  var niUserRecs = [];
+  var needitRecsCount = 0;
 
+  while (userNICount.next()) {
+    needitRecs = userNICount.getAggregate('COUNT');
+    var reqType = userNICount.u_request_type.getDisplayValue();
+    niUserRecs.push({ requestType: reqType, count: needitRecs });
+    needitRecsCount = parseInt(needitRecsCount) + parseInt(needitRecs);
+  }
 
+  //Create a body object.  Add property value pairs to the body.
+  var body = {};
+  body.totalUserNIRecs = needitRecsCount;
+  body.catCounts = niUserRecs;
+  body.user = { 'User name': requestUserName.user_name, 'User ID': requestUserName.sys_id };
 
-// Get the count of active NeedIt table records where the user from the
-// user_name path parameter is the Requested for.  The encoded query is from the
-// Query Parameter Associations.  Group by category.
-var userNICount = new GlideAggregate('x_58872_needit_needit');
-userNICount.addAggregate('COUNT');
-userNICount.addQuery('u_requested_for',requestUserName.sys_id);
-userNICount.addEncodedQuery(requestNIQuery);
-userNICount.groupBy('u_request_type');
-userNICount.query();
-
-
-var needitRecs = 0;
-var niUserRecs = [];
-var needitRecsCount = 0;
-
-while (userNICount.next()) {
-  needitRecs = userNICount.getAggregate('COUNT');
-  var reqType = userNICount.u_request_type.getDisplayValue();
-  niUserRecs.push({"requestType": reqType, "count": needitRecs});
-  needitRecsCount = parseInt(needitRecsCount) + parseInt(needitRecs);
-}
-  
-//Create a body object.  Add property value pairs to the body.
-var body = {};
-body.totalUserNIRecs = needitRecsCount;
-body.catCounts = niUserRecs;
-body.user = {"User name": requestUserName.user_name,
-"User ID": requestUserName.sys_id};
-      
-// Send the response object, which is returned to the requestor, to the body object.
-response.setBody(body);
-
-})(request, response);]]></operation_script>
+  // Send the response object, which is returned to the requestor, to the body object.
+  response.setBody(body);
+})(request, response);
+]]></operation_script>
         <operation_uri>/api/x_58872_needit/v1/needit_api/nigetinfo/{user_name}</operation_uri>
         <produces>application/json,application/xml,text/xml</produces>
         <produces_customized>false</produces_customized>

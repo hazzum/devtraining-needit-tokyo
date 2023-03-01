@@ -7,62 +7,62 @@
         <enforce_acl>cf9d01d3e73003009d6247e603f6a990</enforce_acl>
         <http_method>GET</http_method>
         <name>ni_getinfo (v2)</name>
-        <operation_script><![CDATA[(( /*RESTAPIRequest*/ request, /*RESTAPIResponse*/ response) => {
-    // Get value from the user_name path parameter passed in the URL
-    const {user_name} = request.pathParams;
-    const {ni_query} = request.queryParams;
-	
-	if (!user_name || ! ni_query) {
-		response.setStatus(400);
-		response.setError(new sn_ws_err.BadRequestError('Missing mandatory parameters'));
-		return;
-	}
-    // Query the sys_user table to get the user record for the user passed in
-    // the user_id path parameter.
-    let requestUserName;
-    new global.GlideQuery('sys_user')
-        .where('user_name', user_name)
-        .selectOne('user_name').ifPresent((user) => {
-            requestUserName = user;
-        });
-	if (!requestUserName) {
-		response.setStatus(404);
-		response.setError(new sn_ws_err.NotFoundError('User not found'));
-		return;
-	}
-    // Get the count of active NeedIt table records where the user from the
-    // user_name path parameter is the Requested for.  The encoded query is from the
-    // Query Parameter Associations.  Group by category.
-    let needitRecs = 0;
-    const niUserRecs = [];
-    let needitRecsCount = 0;
-    new global.GlideQuery
-        .parse('x_58872_needit_needit', ni_query)
-        .where('u_requested_for', requestUserName.sys_id)
-        .groupBy('u_request_type')
-        .aggregate('count')
-		.select()
-        .forEach((userNI) => {
-            needitRecs = userNI.count;
-            const reqType = userNI.group.u_request_type;
-            niUserRecs.push({
-                "requestType": reqType,
-                "count": needitRecs
-            });
-            needitRecsCount = parseInt(needitRecsCount) + parseInt(needitRecs);
-        });
-    //Create a body object.  Add property value pairs to the body.
-    const body = {};
-    body.totalUserNIRecs = needitRecsCount;
-    body.catCounts = niUserRecs;
-    body.user = {
-        "User name": requestUserName.user_name,
-        "User ID": requestUserName.sys_id
-    };
-    // Send the response object, which is returned to the requestor, to the body object.
-    response.setBody(body);
+        <operation_script><![CDATA[((/*RESTAPIRequest*/ request, /*RESTAPIResponse*/ response) => {
+  // Get value from the user_name path parameter passed in the URL
+  const { user_name } = request.pathParams;
+  const { ni_query } = request.queryParams;
 
-})(request, response);]]></operation_script>
+  if (!user_name || !ni_query) {
+    response.setStatus(400);
+    response.setError(new sn_ws_err.BadRequestError('Missing mandatory parameters'));
+    return;
+  }
+  // Query the sys_user table to get the user record for the user passed in
+  // the user_id path parameter.
+  let requestUserName;
+  new global.GlideQuery('sys_user')
+    .where('user_name', user_name)
+    .selectOne('user_name')
+    .ifPresent((user) => {
+      requestUserName = user;
+    });
+  if (!requestUserName) {
+    response.setStatus(404);
+    response.setError(new sn_ws_err.NotFoundError('User not found'));
+    return;
+  }
+  // Get the count of active NeedIt table records where the user from the
+  // user_name path parameter is the Requested for.  The encoded query is from the
+  // Query Parameter Associations.  Group by category.
+  let needitRecs = 0;
+  const niUserRecs = [];
+  let needitRecsCount = 0;
+  new global.GlideQuery.parse('x_58872_needit_needit', ni_query)
+    .where('u_requested_for', requestUserName.sys_id)
+    .groupBy('u_request_type')
+    .aggregate('count')
+    .select()
+    .forEach((userNI) => {
+      needitRecs = userNI.count;
+      const reqType = userNI.group.u_request_type;
+      niUserRecs.push({
+        requestType: reqType,
+        count: needitRecs
+      });
+      needitRecsCount = parseInt(needitRecsCount) + parseInt(needitRecs);
+    });
+  //Create a body object.  Add property value pairs to the body.
+  const body = {};
+  body.totalUserNIRecs = needitRecsCount;
+  body.catCounts = niUserRecs;
+  body.user = {
+    'User name': requestUserName.user_name,
+    'User ID': requestUserName.sys_id
+  };
+  // Send the response object, which is returned to the requestor, to the body object.
+  response.setBody(body);
+})(request, response);
+]]></operation_script>
         <operation_uri>/api/x_58872_needit/v2/needit_api/nigetinfo/{user_name}</operation_uri>
         <produces>application/json,application/xml,text/xml</produces>
         <produces_customized>false</produces_customized>
